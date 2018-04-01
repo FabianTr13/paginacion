@@ -6,8 +6,8 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ConfigProgramsComponent implements OnInit {
 
-  cadenaReferencia:any[] = [1,2,3,3,5,1,2,2,6,2,1,5,7,6,3];
-  marcoReferencia:number = 4;
+  cadenaReferencia:any[] = [2,3,2,1,5,2,4,5,3,2,5,2];
+  marcoReferencia:number = 3;
   datosPendientes:boolean;
   fallos:any[] = [];
   matrizAlgoritmo:any[][] = [];
@@ -30,6 +30,72 @@ export class ConfigProgramsComponent implements OnInit {
 
   addMarco(p_marco:number){
     this.marcoReferencia = p_marco;
+  }
+
+  algoritmoSCA(p_tipo:number):any[]{
+    //Reiniciamos las matrices
+    this.matrizAlgoritmo = [];
+    this.fallos = [];
+    let index_cadena = 0;
+    //Recorremos cada posicion de la cadena de referecnia
+    for (let item of this.cadenaReferencia) {
+
+      //Si es el primer elemento creamos la primer pagina
+      if (this.matrizAlgoritmo.length == 0){
+        let arreglo_temp = [item.toString() + "Ω"];
+        for (let i = 0; i < this.marcoReferencia -1; i++) {
+          arreglo_temp.push (".");
+        }
+        this.matrizAlgoritmo.push(arreglo_temp);
+        this.fallos.push(true);
+      }// si no iniciaremos la copia apartir de la anterior
+      else
+      {
+        //insertamos una copia de la columna anterior
+        this.matrizAlgoritmo.push(this.matrizAlgoritmo[this.matrizAlgoritmo.length - 1].concat());
+
+        let i_c:number = 0;
+        let fallo:boolean = true;
+
+        for (let variable of this.matrizAlgoritmo[this.matrizAlgoritmo.length - 1]) {
+          //Si el iten ya existe no hacemos nada solo posteamos el fallo
+          if(variable.toString().replace("ß", "").replace("Ω", "") == item.toString().replace("ß", "").replace("-Ω", ""))
+          {
+            this.matrizAlgoritmo[this.matrizAlgoritmo.length - 1][i_c] = item.toString() + "ß"
+            fallo = false;
+            this.fallos.push(false);
+            break;
+          }
+          else if(variable == "."){ //Si hay una celda vacia lo insertamos
+            this.matrizAlgoritmo[this.matrizAlgoritmo.length - 1][i_c] = item.toString() + "Ω";
+            fallo = false;
+            this.fallos.push(true);
+            break;
+          }
+          i_c++;
+        }
+
+        //Si es true necesita de un algoritmo
+        if (fallo){
+          this.fallos.push(true);
+          if(p_tipo == 1){
+            this.algoritmoFifo(item, false);
+          }
+          else if(p_tipo == 2)
+          {
+            this.algoritmoOpt(item, index_cadena);
+          }
+          else if (p_tipo == 3){
+            this.algoritmoLRU(item, index_cadena);
+          }
+          else if (p_tipo == 4){
+            this.algoritmoFifo(item, true);
+          }
+        }
+      }
+      index_cadena++;
+    }
+    return this.trasposeMatrix(this.matrizAlgoritmo);
   }
 
   algoritmo(p_tipo:number):any[]{
@@ -78,7 +144,7 @@ export class ConfigProgramsComponent implements OnInit {
         if (fallo){
           this.fallos.push(true);
           if(p_tipo == 1){
-            this.algoritmoFifo(item);
+            this.algoritmoFifo(item, false);
           }
           else if(p_tipo == 2)
           {
@@ -94,7 +160,7 @@ export class ConfigProgramsComponent implements OnInit {
     return this.trasposeMatrix(this.matrizAlgoritmo);
   }
 
-  algoritmoFifo(p_item:any){
+  algoritmoFifo(p_item:any, sca:boolean){
     //Creamos un marco para almacenar los conteos del fifo
     let marco_fifo:any[] = [];
     for (let i = 0; i <= this.marcoReferencia - 1; i++) {
@@ -106,9 +172,17 @@ export class ConfigProgramsComponent implements OnInit {
     for (let i = this.matrizAlgoritmo.length - 2; i >= 0; i--){
       for (let j = this.matrizAlgoritmo[i].length - 1; j >= 0; j--) {
         for (let i_2 = this.matrizAlgoritmo.length - this.marcoReferencia - 1; i_2 >= 0; i_2--){
-          if(this.matrizAlgoritmo[i_2][j] == this.matrizAlgoritmo[this.matrizAlgoritmo.length - 2][j])
+          if(this.matrizAlgoritmo[i_2][j].toString().replace("ß", "").replace("Ω", "") == this.matrizAlgoritmo[this.matrizAlgoritmo.length - 2][j].toString().replace("ß", "").replace("Ω", ""))
           {
-            marco_fifo[j]++;
+            if(sca){
+              if(this.matrizAlgoritmo[this.matrizAlgoritmo.length - 2][j].indexOf("Ω") > 0)
+              {
+                marco_fifo[j]++;
+              }
+            }
+            else{
+              marco_fifo[j]++;
+            }
           }
         }
       }
@@ -123,8 +197,14 @@ export class ConfigProgramsComponent implements OnInit {
         yy = i;
       }
     }
+
     //hacemos el reemplazo
-    this.matrizAlgoritmo[this.matrizAlgoritmo.length - 1][yy] = p_item;
+    if(sca){
+      this.matrizAlgoritmo[this.matrizAlgoritmo.length - 1][yy] = p_item.toString() + "Ω";
+    }
+    else{
+      this.matrizAlgoritmo[this.matrizAlgoritmo.length - 1][yy] = p_item;
+    }
   }
 
   algoritmoOpt(p_item:any, p_index:number){
@@ -166,7 +246,7 @@ export class ConfigProgramsComponent implements OnInit {
       this.matrizAlgoritmo[this.matrizAlgoritmo.length - 1][i_index_reemplazo] = p_item;
     }
     else{
-      this.algoritmoFifo(p_item);
+      this.algoritmoFifo(p_item, false);
     }
   }
 
@@ -192,8 +272,6 @@ export class ConfigProgramsComponent implements OnInit {
       }
     }
 
-    console.log(p_item);
-    console.log(array_exist);
     let i_valor:number = p_index;
     for (let i = 0; i <= array_exist.length; i++) {
         if(array_exist[i] <= i_valor){
