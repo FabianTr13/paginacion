@@ -1,0 +1,75 @@
+<h1 class="fadeIn fast text-center">Algoritmo de paginacion</h1>
+<hr>
+<div class="row">
+  <div class="col-1">
+  </div>
+  <div class="col-4">
+    <p>Cantidad de memoria</p>
+    <input class="form-control form-control-lg" type="text" name="txtMemoria">
+  </div>
+  <div class="col-4">
+    <p>Cantidad de Disco Duro</p>
+    <input class="form-control form-control-lg" type="text" name="txtDisco">
+  </div>
+</div>
+<hr>
+<div class="row">
+  <div class="col-md-1">
+    <p class="text-lg-left" >Referencia  </p>
+  </div>
+  <div class="">
+    <input class="form-control form-control-lg" type="text" (keyup.enter) = "addReferencia(nuevo.value); nuevo.value = ''" ondragover="" #nuevo>
+  </div>
+  <div class="">
+    <button class="btn btn-success btn-lg" type="button" name="button" (click) ="addReferencia(nuevo.value); nuevo.value = ''; nuevo.focus()">add</button>
+  </div>
+  <div class="col-md-1">
+  </div>
+  <div class="col-md-2">
+    <p>Marcos de pagina</p>
+  </div>
+  <div class="">
+    <input class="form-control form-control-lg" type="number" (keyup.enter) = "addMarco(txtMarco.value);" ondragover="" #txtMarco>
+  </div>
+  <div class="">
+    <button class="btn btn-success btn-lg" type="button" name="button" (click) ="addMarco(txtMarco.value);">add</button>
+  </div>
+</div>
+<br><br>
+<div>
+  <ul>
+    <li class="listh" *ngFor="let item of cadenaReferencia">
+      <a class="badge badge-pill badge-danger text-white" (click) = "removeReferencia(item)" >X</a>
+      {{ item }}
+    </li>
+  </ul>
+</div>
+<hr>
+<div class="row">
+  <div class="btn-group btn-group-lg mx-auto" role="group" aria-label="Algotimos">
+    <button type="button" class="btn btn-primary btn-lg" (click) = "algoritmo(1)">FIFO</button>
+    <button type="button" class="btn btn-primary btn-lg" (click) = "algoritmo(2)">Optimo</button>
+    <button type="button" class="btn btn-primary btn-lg" (click) = "algoritmo(3)">LRU</button>
+  </div>
+</div>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col" *ngFor="let item of cadenaReferencia">{{ item }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let item of matrizAlgoritmo">
+      <td *ngFor="let item_cell of item">{{item_cell}}</td>
+    </tr>
+    <td *ngFor="let item of fallos">
+      <div *ngIf="item">
+        <a class="btn btn-danger btn-sm text-white">Fallo</a>
+      </div>
+      <div *ngIf="!item">
+        <a class="btn btn-primary btn-sm text-white">-</a>
+      </div>
+    </td>
+  </tbody>
+</table>
