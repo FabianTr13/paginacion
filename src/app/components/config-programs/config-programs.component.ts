@@ -6,11 +6,19 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ConfigProgramsComponent implements OnInit {
 
-  cadenaReferencia:any[] = [2,3,2,1,5,2,4,5,3,2,5,2];
-  marcoReferencia:number = 3;
+  cadenaReferencia:any[] = [];
+  marcoReferencia:number = 0;
   datosPendientes:boolean;
   fallos:any[] = [];
   matrizAlgoritmo:any[][] = [];
+  alerta = false;
+  verMarco = false;
+
+  cantidadFallos:number = 0;
+  cantidadReferencias:number = 0;
+  frecuencias:number = 0;
+  rendimiento:number = 0;
+
   constructor() { }
 
   ngOnInit() {
@@ -30,9 +38,50 @@ export class ConfigProgramsComponent implements OnInit {
 
   addMarco(p_marco:number){
     this.marcoReferencia = p_marco;
+
+    if(this.marcoReferencia > 0){
+      this.verMarco = true;
+    }
+    else{
+      this.verMarco = false;
+    }
+  }
+
+  validacionAlerta(){
+    if(this.cadenaReferencia.length == 0){
+      this.alerta = true;
+    }
+    else if(this.marcoReferencia == 0){
+      this.alerta = true;
+    }
+    else
+    {
+      this.alerta = false;
+    }
+  }
+
+  calculoTotales(){
+    this.cantidadFallos = 0;
+    for (let variable of this.fallos) {
+        if(variable){
+          this.cantidadFallos++;
+        }
+    }
+
+    this.cantidadReferencias = this.cadenaReferencia.length;
+
+    this.frecuencias = this.cantidadFallos / this.cantidadReferencias;
+
+    this.rendimiento = 1-this.frecuencias;
   }
 
   algoritmoSCA(p_tipo:number):any[]{
+    //validaciones
+      this.validacionAlerta();
+      if(this.alerta){
+          return;
+      }
+
     //Reiniciamos las matrices
     this.matrizAlgoritmo = [];
     this.fallos = [];
@@ -77,28 +126,23 @@ export class ConfigProgramsComponent implements OnInit {
 
         //Si es true necesita de un algoritmo
         if (fallo){
-          this.fallos.push(true);
-          if(p_tipo == 1){
-            this.algoritmoFifo(item, false);
-          }
-          else if(p_tipo == 2)
-          {
-            this.algoritmoOpt(item, index_cadena);
-          }
-          else if (p_tipo == 3){
-            this.algoritmoLRU(item, index_cadena);
-          }
-          else if (p_tipo == 4){
+            this.fallos.push(true);
             this.algoritmoFifo(item, true);
-          }
         }
       }
       index_cadena++;
     }
+    this.calculoTotales();
     return this.trasposeMatrix(this.matrizAlgoritmo);
   }
 
   algoritmo(p_tipo:number):any[]{
+    //validaciones
+    this.validacionAlerta();
+    if(this.alerta){
+        return;
+    }
+
     //Reiniciamos las matrices
     this.matrizAlgoritmo = [];
     this.fallos = [];
@@ -157,6 +201,7 @@ export class ConfigProgramsComponent implements OnInit {
       }
       index_cadena++;
     }
+    this.calculoTotales();
     return this.trasposeMatrix(this.matrizAlgoritmo);
   }
 
@@ -229,10 +274,15 @@ export class ConfigProgramsComponent implements OnInit {
     }
 
     //si aplica
+    let aplica_l = 0;
     for (let variable of array_exist) {
         if(variable == 0){
-          aplica = false;
+          aplica_l++;
         }
+    }
+
+    if(aplica_l == this.marcoReferencia -1){
+      aplica = false;
     }
 
     if(aplica){
